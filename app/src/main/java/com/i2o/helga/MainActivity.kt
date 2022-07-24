@@ -14,7 +14,6 @@ import android.graphics.drawable.ColorDrawable
 import android.os.*
 import android.speech.RecognizerIntent
 import android.util.Log
-import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.FrameLayout
@@ -22,37 +21,58 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.company.product.OverrideUnityActivity
+import com.google.android.gms.wearable.PutDataMapRequest
+import com.google.android.gms.wearable.Wearable
 import com.i2o.helga.helper.DBHelper
 import com.i2o.helga.model.Notification
 import com.unity3d.player.UnityPlayer
+import kotlinx.coroutines.*
+import kotlinx.coroutines.tasks.await
+import java.time.Duration
+import java.time.Instant
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
 class MainActivity : OverrideUnityActivity() {
 
-    companion object {
-        private val TAG: String = MainActivity::class.java.name
-        private const val CHANNEL_ID: String = "NC"
-        // notificationId is a unique int for each notification that you must define
-        private const val NOTIFICATION_ID = 1
-    }
-
-    lateinit var notificationManager: NotificationManagerCompat
+    private lateinit var notificationManager: NotificationManagerCompat
 
     @Volatile var isShowing:Boolean = false
     private lateinit var vibrator: Vibrator
 
-    lateinit var dbHelper: DBHelper
+    private lateinit var dbHelper: DBHelper
     lateinit var frameLayout: FrameLayout
     lateinit var dialog: Dialog
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
+    private val dataClient by lazy { Wearable.getDataClient(this) }
 
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        var count = 0
+
+        scope.launch {
+            var lastTriggerTime = Instant.now() - (countInterval - Duration.ofSeconds(1))
+            while (isActive) {
+
+                delay(
+                    Duration.between(Instant.now(), lastTriggerTime + countInterval).toMillis()
+                )
+                lastTriggerTime = Instant.now()
+                sendCount(count)
+                Log.d(TAG, "Count: $count")
+
+                count++
+            }
+        }
 
         dbHelper = DBHelper(this)
         dialog = Dialog(this)
@@ -233,5 +253,33 @@ class MainActivity : OverrideUnityActivity() {
 
     private fun cancelNotification(notificationId: Int) {
         notificationManager.cancel(notificationId) // Cancels notification
+    }
+    private suspend fun sendCount(count: Int) {
+        try {
+            val request = PutDataMapRequest.create(COUNT_PATH).apply {
+                dataMap.putInt(COUNT_KEY, count)
+            }
+                .asPutDataRequest()
+                .setUrgent()
+
+            val result = dataClient.putDataItem(request).await()
+
+            Log.d(TAG, "DataItem saved: $result")
+        } catch (cancellationException: CancellationException) {
+            throw cancellationException
+        } catch (exception: Exception) {
+            Log.d(TAG, "Saving DataItem failed: $exception")
+        }
+    }
+
+    companion object {
+        private val TAG: String = MainActivity::class.java.name
+        private const val CHANNEL_ID: String = "NC"
+        // notificationId is a unique int for each notification that you must define
+        private const val NOTIFICATION_ID = 1
+
+        private val countInterval = Duration.ofSeconds(5)
+        private const val COUNT_PATH = "/count"
+        private const val COUNT_KEY = "count"
     }
 }

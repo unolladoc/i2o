@@ -8,17 +8,32 @@
     tools:context=".MainActivity"
     tools:deviceIds="wear">
 
-    <FrameLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="@dimen/inner_frame_layout_padding"
         app:layout_boxedEdges="all">
 
-        <TextView
-            android:id="@+id/text"
+        <ToggleButton
+            android:id="@+id/hear"
+            style="@style/toggleButton"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:background="@drawable/ic_toggle_bg"
+            app:layout_constraintBottom_toTopOf="@+id/open_app"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/open_app"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/hello_world" />
+            android:text="@string/open_app"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
-    </FrameLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.wear.widget.BoxInsetLayout>
