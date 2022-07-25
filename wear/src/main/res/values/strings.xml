@@ -6,4 +6,7 @@
     -->
     <string name="hello_world">Hello Square World!</string>
     <string name="open_app">Open App</string>
+
+    <string name="no_device">No device provides the requested capabilities</string>
+    <string name="connected_nodes">Nodes: %1$s</string>
 </resources>

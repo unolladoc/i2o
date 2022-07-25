@@ -21,7 +21,6 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.company.product.OverrideUnityActivity
 import com.google.android.gms.wearable.PutDataMapRequest
@@ -68,7 +67,6 @@ class MainActivity : OverrideUnityActivity() {
                 )
                 lastTriggerTime = Instant.now()
                 sendCount(count)
-                Log.d(TAG, "Count: $count")
 
                 count++
             }
