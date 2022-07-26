@@ -11,6 +11,7 @@
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault">
@@ -29,7 +30,7 @@
         <activity
             android:name=".CustomDialogActivity"
             android:exported="false"
-            android:label="@string/title_activity_custom_dialog"></activity>
+            android:label="@string/title_activity_custom_dialog" />
 
         <meta-data
             android:name="com.google.android.gms.version"
