@@ -237,7 +237,8 @@ class MainActivity : ComponentActivity() {
             transcriptionNodeId = nodes.firstOrNull { it.isNearby }?.id ?: nodes.firstOrNull()?.id
         }
 
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        Log.d(TAG, message)
+//        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
     private suspend fun getCapabilitiesForReachableNodes(): Map<Node, Set<String>> =

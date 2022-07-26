@@ -75,8 +75,13 @@ class MainActivity : OverrideUnityActivity() {
         dbHelper = DBHelper(this)
         dialog = Dialog(this)
 
+        if (checkSelfPermission(Manifest.permission.VIBRATE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(Manifest.permission.VIBRATE), 0)
+        }
+
         val vibratorManager = getSystemService(VIBRATOR_MANAGER_SERVICE) as VibratorManager
         vibrator = vibratorManager.defaultVibrator
+
         if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), 0)
         }
@@ -190,7 +195,7 @@ class MainActivity : OverrideUnityActivity() {
     private fun saveToDB(label: String): Boolean {
         val timeStamp =
             LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss"))
-        return dbHelper.insertData(Notification(label, timeStamp))
+        return dbHelper.insertData(Notification(timeStamp, label))
     }
 
     private fun vibrate() {
