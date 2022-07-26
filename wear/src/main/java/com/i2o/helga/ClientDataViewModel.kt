@@ -18,8 +18,8 @@ class ClientDataViewModel(
     MessageClient.OnMessageReceivedListener,
     CapabilityClient.OnCapabilityChangedListener {
 
-    private val _message = MutableLiveData<String>()
-    val message: LiveData<String> = _message
+    private val _result = MutableLiveData<String>()
+    val result: LiveData<String> = _result
 
     private val  _appConnected = MutableLiveData<Boolean>()
     val appConnected: LiveData<Boolean> = _appConnected
@@ -36,12 +36,12 @@ class ClientDataViewModel(
             when (dataEvent.type) {
                 DataEvent.TYPE_CHANGED -> {
                     when (dataEvent.dataItem.uri.path) {
-                        MESSAGE_PATH -> {
+                        RESULT_PATH -> {
                             getMessageJob.cancel()
                             getMessageJob = viewModelScope.launch {
-                                _message.value = DataMapItem.fromDataItem(dataEvent.dataItem)
+                                _result.value = DataMapItem.fromDataItem(dataEvent.dataItem)
                                     .dataMap
-                                    .getString(MESSAGE_KEY)
+                                    .getString(RESULT_KEY)
                             }
                         }
                         COUNT_PATH -> {
@@ -68,7 +68,7 @@ class ClientDataViewModel(
         private const val TAG = "ClientDataViewModel"
         private const val COUNT_PATH = "/count"
         private const val COUNT_KEY = "count"
-        private const val MESSAGE_PATH = "/message"
-        private const val MESSAGE_KEY = "message"
+        private const val RESULT_PATH = "/result"
+        private const val RESULT_KEY = "result"
     }
 }

@@ -1,6 +1,7 @@
 package com.i2o.helga
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.AudioFormat
 import android.media.AudioRecord
@@ -16,9 +17,7 @@ import androidx.activity.viewModels
 import androidx.annotation.RequiresPermission
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.gms.wearable.CapabilityClient
 import com.google.android.gms.wearable.Node
 import com.google.android.gms.wearable.Wearable
@@ -40,7 +39,7 @@ class MainActivity : ComponentActivity() {
 
     private val clientDataViewModel by viewModels<ClientDataViewModel>()
 
-    var checkAppConnectedJob: Job = Job().apply { complete() }
+    private var checkAppConnectedJob: Job = Job().apply { complete() }
 
     private var hearState: Boolean = false
     private var transcriptionNodeId: String? = null
@@ -75,8 +74,13 @@ class MainActivity : ComponentActivity() {
                 startListening()
             } else {
                 hearState = false
-//                stopListening()
+                stopListening()
             }
+        }
+
+        clientDataViewModel.result.observe(this) { result ->
+            binding.hear.isChecked = false
+            openAlertDialogActivity(result)
         }
 
         clientDataViewModel.appConnected.observe(this) { value ->
@@ -110,6 +114,18 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+    }
+
+    private fun openAlertDialogActivity(string: String) {
+        val intent = Intent(this, CustomDialogActivity::class.java).apply {
+            putExtra("result", string)
+        }
+        startActivity(intent)
+    }
+
+    private fun stopListening() {
+        audioRecord.stop()
+        Log.d(TAG, "Stopped Listening")
     }
 
     private fun startListening() {

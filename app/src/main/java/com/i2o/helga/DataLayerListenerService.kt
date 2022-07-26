@@ -4,10 +4,9 @@ import android.content.Intent
 import android.media.AudioRecord
 import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.google.android.gms.wearable.DataEventBuffer
-import com.google.android.gms.wearable.MessageEvent
-import com.google.android.gms.wearable.WearableListenerService
+import com.google.android.gms.wearable.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.tasks.await
 import org.tensorflow.lite.support.audio.TensorAudio
 import org.tensorflow.lite.support.label.Category
 import org.tensorflow.lite.task.audio.classifier.AudioClassifier
@@ -18,6 +17,7 @@ import java.util.*
 class DataLayerListenerService: WearableListenerService() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val dataClient by lazy { Wearable.getDataClient(this) }
 
     private lateinit var classifier: AudioClassifier
     private lateinit var audioTensor: TensorAudio
@@ -103,9 +103,27 @@ class DataLayerListenerService: WearableListenerService() {
                     || label.contains("vehicle")
                 ) {
                     Log.d(TAG, "LABEL DETECTED!!!!!!!!!!!! " + category.label)
-
+                    returnResult(category.label.lowercase())
                 }
             }
+        }
+    }
+
+    private suspend fun returnResult(category: String) {
+        try {
+            val request = PutDataMapRequest.create(RESULT_PATH).apply {
+                dataMap.putString(RESULT_KEY, category)
+            }
+                .asPutDataRequest()
+                .setUrgent()
+
+            val result = dataClient.putDataItem(request).await()
+
+            Log.d(TAG, "DataItem saved: $result")
+        } catch (cancellationException: CancellationException) {
+            throw cancellationException
+        } catch (exception: Exception) {
+            Log.d(TAG, "Saving DataItem failed: $exception")
         }
     }
 
@@ -113,6 +131,8 @@ class DataLayerListenerService: WearableListenerService() {
         private const val TAG = "DataLayerService"
         private const val START_ACTIVITY_PATH = "/start-activity"
         private const val VOICE_TRANSCRIPTION_MESSAGE_PATH = "/voice_transcription"
+        private const val RESULT_PATH = "/result"
+        private const val RESULT_KEY = "result"
 
         private const val MODEL_FILE = "yamnet.tflite"
     }
